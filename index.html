@@ -35,18 +35,33 @@
 
         #app-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
 
+        /* CABEÇALHO - AJUSTADO PARA LOGO MAIOR */
         header {
-            background: #000; padding: 10px 20px; display: flex; align-items: center; justify-content: center;
+            background: #000; 
+            padding: 5px 20px; /* Reduzi um pouco o padding vertical para acomodar a logo maior */
+            display: flex; align-items: center; justify-content: center;
             border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
-            padding-top: max(10px, env(safe-area-inset-top)); 
+            padding-top: max(5px, env(safe-area-inset-top)); 
         }
         
-        header img { max-height: 45px; width: auto; object-fit: contain; }
+        /* LOGO ARX - AGORA MAIOR */
+        header img { 
+            max-height: 65px; /* Aumentado de 45px para 65px */
+            width: auto; 
+            object-fit: contain; 
+        }
 
+        /* ÁREA DE CHAT - AJUSTADA PARA DESENHOS MENORES */
         #chat-window {
             flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-            background-color: #050505; background-image: url('planodefundo.png');
-            background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; 
+            background-color: #050505; 
+            background-image: url('planodefundo.png');
+            
+            /* NOVA CONFIGURAÇÃO DO FUNDO */
+            background-size: 150px; /* Define o tamanho da imagem 'ladrilho'. Ajuste este valor se quiser desenhos ainda menores ou maiores */
+            background-repeat: repeat; /* Faz a imagem se repetir como azulejo */
+            background-position: top left;
+            /* Removi o background-attachment: fixed; que atrapalha o repeat no mobile */
         }
 
         .message-wrapper { display: flex; width: 100%; }
