@@ -15,12 +15,23 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         
-        body { background-color: var(--bg-color); color: var(--text-color); position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; overflow: hidden; }
+        /* CORREÇÃO DA TELA: Ocupa 100% da tela do celular cravado */
+        body { 
+            background-color: var(--bg-color); color: var(--text-color); 
+            height: 100dvh; /* Garante o tamanho exato no mobile */
+            display: flex; flex-direction: column; overflow: hidden; 
+        }
 
+        #app-container { 
+            display: flex; flex-direction: column; flex: 1; height: 100%; width: 100%; 
+        }
+
+        /* CABEÇALHO FIXO NO TOPO */
         header {
             background: #000; padding: 5px 20px; display: flex; flex-direction: column; align-items: center;
             border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
             padding-top: max(5px, env(safe-area-inset-top));
+            flex-shrink: 0; /* Impede que o cabeçalho seja esmagado */
         }
         
         header img { max-height: 55px; width: auto; object-fit: contain; }
@@ -30,12 +41,14 @@
             margin-top: 5px; font-weight: bold; text-shadow: 0 0 5px rgba(255, 62, 62, 0.5);
         }
 
+        /* ÁREA DE CHAT SCROLLÁVEL NO MEIO */
         #chat-window {
-            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+            flex: 1; /* Estica a janela de chat para empurrar a barra para baixo */
+            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             background-image: url('planodefundo.png'); background-size: cover; background-position: center; background-attachment: fixed;
         }
 
-        .message-wrapper { display: flex; width: 100%; }
+        .message-wrapper { display: flex; width: 100%; flex-shrink: 0; }
         .message-wrapper.sent { justify-content: flex-end; }
         .message-wrapper.received { justify-content: flex-start; }
 
@@ -47,7 +60,6 @@
         .message-wrapper.sent .message { border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.4); }
         .message-wrapper.received .message { border-bottom-left-radius: 4px; border-color: #444; }
 
-        /* BARRA DE TEMPO AJUSTADA PARA 5 MINUTOS (300 segundos) */
         .timer-bar { 
             height: 2px; 
             background: var(--neon-blue); 
@@ -57,7 +69,15 @@
             transition: width 300s linear; 
         }
 
-        #input-area { background: #000; padding: 10px 15px; display: flex; align-items: center; gap: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+        /* BARRA DE TEXTO FIXA NO RODAPÉ */
+        #input-area { 
+            background: #000; padding: 10px 15px; display: flex; align-items: center; gap: 10px; 
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            border-top: 1px solid #222;
+            flex-shrink: 0; /* Garante que a barra não suma */
+            margin-top: auto; /* Trava ela definitivamente lá embaixo */
+        }
+        
         #text-input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 25px; outline: none; font-size: 1rem; }
         
         .action-btn { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; }
@@ -92,7 +112,7 @@
 
         socket.on('connect', () => { socket.emit('entrar-na-sala', salaId); });
 
-        // CONTADOR DE EXPIRAÇÃO DA SALA (Mantido em ~10 min para dar tempo de entrarem)
+        // CONTADOR DE EXPIRAÇÃO DA SALA (10 minutos)
         socket.on('info-sala', (dados) => {
             let segundosRestantes = Math.floor(dados.tempoRestante / 1000);
             const display = document.getElementById('sala-timer');
