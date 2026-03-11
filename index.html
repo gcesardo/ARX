@@ -10,50 +10,30 @@
             --bg-color: #050505;
             --neon-blue: #00f3ff;
             --neon-glow: 0 0 10px rgba(0, 243, 255, 0.5);
-            --bubble-bg: #111;
             --text-color: #e0e0e0;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         
-        body { 
-            background-color: var(--bg-color); color: var(--text-color); position: fixed; 
-            top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; overflow: hidden; 
-        }
-
-        #desktop-blocker {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; color: var(--neon-blue); z-index: 9999;
-            flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
-        }
-        #desktop-blocker h1 { text-shadow: var(--neon-glow); margin-bottom: 10px; }
-        
-        @media (min-width: 768px) {
-            #app-container { display: none !important; }
-            #desktop-blocker { display: flex !important; }
-        }
-
-        #app-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
+        body { background-color: var(--bg-color); color: var(--text-color); position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; overflow: hidden; }
 
         header {
-            background: #000; 
-            padding: 5px 20px; 
-            display: flex; align-items: center; justify-content: center;
+            background: #000; padding: 5px 20px; display: flex; flex-direction: column; align-items: center;
             border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
-            padding-top: max(5px, env(safe-area-inset-top)); 
+            padding-top: max(5px, env(safe-area-inset-top));
         }
         
-        header img { 
-            max-height: 65px; 
-            width: auto; 
-            object-fit: contain; 
+        header img { max-height: 55px; width: auto; object-fit: contain; }
+
+        /* AVISO DO CONTADOR */
+        #sala-timer {
+            font-size: 0.75rem; color: #ff3e3e; text-transform: uppercase; letter-spacing: 1px;
+            margin-top: 5px; font-weight: bold; text-shadow: 0 0 5px rgba(255, 62, 62, 0.5);
         }
 
-        /* ÁREA DE CHAT - FUNDO ORIGINAL RESTAURADO */
         #chat-window {
             flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-            background-color: #050505; background-image: url('planodefundo.png');
-            background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; 
+            background-image: url('planodefundo.png'); background-size: cover; background-position: center; background-attachment: fixed;
         }
 
         .message-wrapper { display: flex; width: 100%; }
@@ -62,52 +42,33 @@
 
         .message {
             max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative;
-            background: rgba(17, 17, 17, 0.9); border: 1px solid #222; font-size: 0.95rem; backdrop-filter: blur(4px); 
+            background: rgba(17, 17, 17, 0.9); border: 1px solid #222; font-size: 0.95rem; backdrop-filter: blur(4px);
         }
 
-        .message-wrapper.sent .message {
-            border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.4); box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.05);
-        }
+        .message-wrapper.sent .message { border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.4); }
         .message-wrapper.received .message { border-bottom-left-radius: 4px; border-color: #444; }
 
-        /* TEMPO DA BARRA ALTERADO PARA 50s */
-        .timer-bar {
-            height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px;
-            border-radius: 2px; transition: width 50s linear;
-        }
+        .timer-bar { height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px; border-radius: 2px; transition: width 50s linear; }
 
-        #input-area {
-            background: #050505; padding: 10px 15px; display: flex; align-items: center; gap: 10px;
-            border-top: 1px solid #222; padding-bottom: max(10px, env(safe-area-inset-bottom));
-        }
-        #text-input {
-            flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px;
-            border-radius: 25px; outline: none; transition: border 0.3s; font-size: 1rem;
-        }
-        #text-input:focus { border-color: var(--neon-blue); box-shadow: var(--neon-glow); }
+        #input-area { background: #000; padding: 10px 15px; display: flex; align-items: center; gap: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+        #text-input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 25px; outline: none; }
         
-        .action-btn {
-            background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue);
-            width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; cursor: pointer; transition: 0.2s; box-shadow: var(--neon-glow); flex-shrink: 0;
-        }
-        .action-btn:active { background: var(--neon-blue); color: #000; }
-        .recording { background: red !important; border-color: red !important; color: white !important; box-shadow: 0 0 15px red !important; animation: pulse 1s infinite; }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        audio { height: 30px; outline: none; width: 200px; filter: invert(100%) hue-rotate(180deg); }
+        .action-btn { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
+        .recording { background: red !important; border-color: red !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        audio { height: 30px; width: 200px; filter: invert(100%); }
     </style>
 </head>
 <body>
 
-    <div id="desktop-blocker">
-        <h1>ARX MESSAGE</h1>
-        <p>Acesso negado. Sistema restrito a dispositivos móveis.</p>
-    </div>
-
     <div id="app-container">
-        <header><img src="logo.png" alt="ARX Message Logo"></header>
+        <header>
+            <img src="logo.png" alt="ARX">
+            <div id="sala-timer">ESTA SALA IRÁ EXPIRAR EM: --:--</div>
+        </header>
+        
         <div id="chat-window"></div>
+
         <div id="input-area">
             <input type="text" id="text-input" placeholder="Mensagem criptografada..." autocomplete="off">
             <button class="action-btn" id="btn-send" onclick="enviarTexto()">➤</button>
@@ -116,130 +77,96 @@
     </div>
 
     <script>
-        // BLOQUEIO PC
-        if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            document.getElementById('app-container').style.display = 'none';
-            document.getElementById('desktop-blocker').style.display = 'flex';
-        }
-
-        // CONECTANDO AO SERVIDOR
         const socket = io('https://arx-e8xb.onrender.com');
+        let salaId = window.location.hash.substring(1) || Math.random().toString(36).substring(2, 10);
+        window.location.hash = salaId;
 
-        // GERA A SALA
-        let salaId = window.location.hash.substring(1);
-        if (!salaId) {
-            salaId = Math.random().toString(36).substring(2, 10); 
-            window.location.hash = salaId; 
-        }
+        socket.on('connect', () => { socket.emit('entrar-na-sala', salaId); });
 
-        // A CORREÇÃO DA SONECA: Garante que você sempre retorne à sala correta
-        socket.on('connect', () => {
-            console.log('Conectado! Entrando na sala: ' + salaId);
-            socket.emit('entrar-na-sala', salaId); 
+        // LÓGICA DO CONTADOR DE TEMPO DA SALA
+        socket.on('info-sala', (dados) => {
+            let segundosRestantes = Math.floor(dados.tempoRestante / 1000);
+            const display = document.getElementById('sala-timer');
+
+            const intervalo = setInterval(() => {
+                let min = Math.floor(segundosRestantes / 60);
+                let seg = segundosRestantes % 60;
+                display.innerText = `ESTA SALA IRÁ EXPIRAR EM: ${min}:${seg < 10 ? '0' + seg : seg}`;
+                
+                if (segundosRestantes <= 0) {
+                    clearInterval(intervalo);
+                    alert("A sala expirou e foi destruída.");
+                    window.location.reload();
+                }
+                segundosRestantes--;
+            }, 1000);
         });
 
         socket.on('receber-mensagem', (dados) => {
-            let conteudoFinal = dados.conteudo;
+            let conteudo = dados.conteudo;
             if (dados.formato === 'audio') {
                 const blob = new Blob([dados.conteudo], { type: 'audio/webm' });
-                conteudoFinal = URL.createObjectURL(blob);
+                conteudo = URL.createObjectURL(blob);
             }
-            renderizarMensagem(conteudoFinal, 'received', dados.formato);
+            renderizarMensagem(conteudo, 'received', dados.formato);
         });
 
-        const chatWindow = document.getElementById('chat-window');
-        const textInput = document.getElementById('text-input');
-
-        textInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') enviarTexto(); });
-
         function enviarTexto() {
-            const texto = textInput.value.trim();
-            if (texto === '') return;
-
+            const texto = document.getElementById('text-input').value.trim();
+            if (!texto) return;
             renderizarMensagem(texto, 'sent', 'text');
-            socket.emit('enviar-mensagem', { salaId: salaId, conteudo: texto, formato: 'text' });
-            textInput.value = '';
+            socket.emit('enviar-mensagem', { salaId, conteudo: texto, formato: 'text' });
+            document.getElementById('text-input').value = '';
         }
 
         function renderizarMensagem(conteudo, tipo, formato) {
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${tipo}`;
-            const msgId = 'msg-' + Date.now();
-            wrapper.id = msgId;
-
             const bubble = document.createElement('div');
             bubble.className = 'message';
 
-            if (formato === 'text') {
-                bubble.innerText = conteudo;
-            } else if (formato === 'audio') {
-                const audioPlayer = document.createElement('audio');
-                audioPlayer.controls = true;
-                audioPlayer.src = conteudo;
-                bubble.appendChild(audioPlayer);
+            if (formato === 'text') bubble.innerText = conteudo;
+            else {
+                const audio = document.createElement('audio');
+                audio.src = conteudo; audio.controls = true;
+                bubble.appendChild(audio);
             }
 
-            const timerBar = document.createElement('div');
-            timerBar.className = 'timer-bar';
-            bubble.appendChild(timerBar);
-            
+            const bar = document.createElement('div');
+            bar.className = 'timer-bar';
+            bubble.appendChild(bar);
             wrapper.appendChild(bubble);
-            chatWindow.appendChild(wrapper);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            document.getElementById('chat-window').appendChild(wrapper);
+            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
 
-            setTimeout(() => { timerBar.style.width = '0%'; }, 50);
-
-            // DESTRUIÇÃO EM 50 SEGUNDOS
-            setTimeout(() => {
-                const elemento = document.getElementById(msgId);
-                if (elemento) {
-                    elemento.remove();
-                    if (formato === 'audio') URL.revokeObjectURL(conteudo);
-                }
-            }, 50000); 
+            setTimeout(() => bar.style.width = '0%', 50);
+            setTimeout(() => wrapper.remove(), 50000); // 50 segundos na tela
         }
 
-        // GRAVAÇÃO DE ÁUDIO
+        // --- GRAVAÇÃO DE ÁUDIO ---
         const btnMic = document.getElementById('btn-mic');
-        let mediaRecorder;
-        let audioChunks = [];
+        let mediaRecorder, audioChunks = [];
 
-        btnMic.addEventListener('mousedown', iniciarGravacao);
-        btnMic.addEventListener('touchstart', iniciarGravacao);
-        btnMic.addEventListener('mouseup', pararGravacao);
-        btnMic.addEventListener('touchend', pararGravacao);
-
-        function iniciarGravacao(e) {
-            e.preventDefault(); 
-            if (!navigator.mediaDevices) return alert("Microfone não suportado no navegador.");
-
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                mediaRecorder = new MediaRecorder(stream);
-                btnMic.classList.add('recording');
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
-                mediaRecorder.start();
-            }).catch(err => alert("Permissão de microfone negada."));
-        }
-
-        function pararGravacao(e) {
+        btnMic.addEventListener('touchstart', async (e) => {
             e.preventDefault();
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                btnMic.classList.remove('recording');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                const url = URL.createObjectURL(blob);
+                renderizarMensagem(url, 'sent', 'audio');
+                socket.emit('enviar-mensagem', { salaId, conteudo: blob, formato: 'audio' });
+            };
+            mediaRecorder.start();
+            btnMic.classList.add('recording');
+        });
 
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    
-                    renderizarMensagem(audioUrl, 'sent', 'audio');
-                    socket.emit('enviar-mensagem', { salaId: salaId, conteudo: audioBlob, formato: 'audio' });
-                    
-                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                };
-            }
-        }
+        btnMic.addEventListener('touchend', () => {
+            mediaRecorder.stop();
+            btnMic.classList.remove('recording');
+        });
     </script>
 </body>
 </html>
