@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARX MESSAGE</title>
     <style>
         /* === VARIÁVEIS DE COR E TEMA === */
@@ -16,7 +16,17 @@
 
         /* === RESET BÁSICO === */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* A MÁGICA PARA O IPHONE: Prende o corpo do site nas bordas exatas da tela visível */
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0; /* Trava na tela */
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
 
         /* === BLOQUEIO DE DESKTOP === */
         #desktop-blocker {
@@ -26,7 +36,6 @@
         }
         #desktop-blocker h1 { text-shadow: var(--neon-glow); margin-bottom: 10px; }
         
-        /* Regra CSS: Se a tela for maior que 768px (Tablet/PC), esconde o app e mostra o aviso */
         @media (min-width: 768px) {
             #app-container { display: none !important; }
             #desktop-blocker { display: flex !important; }
@@ -39,6 +48,7 @@
         header {
             background: #000; padding: 15px 20px; display: flex; align-items: center; justify-content: center;
             border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
+            padding-top: max(15px, env(safe-area-inset-top)); /* Evita o notch do iPhone */
         }
         header h1 { font-size: 1.2rem; color: var(--neon-blue); letter-spacing: 2px; text-shadow: var(--neon-glow); text-transform: uppercase; }
 
@@ -56,11 +66,9 @@
         .message {
             max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative;
             background: var(--bubble-bg); border: 1px solid #222; font-size: 0.95rem;
-            /* EFEITO DE SEGURANÇA: Borrado por padrão */
             filter: blur(6px); transition: filter 0.3s ease; user-select: none;
         }
         
-        /* Revela ao tocar/segurar */
         .message:active, .message.revealed { filter: blur(0); }
 
         .message-wrapper.sent .message {
@@ -71,13 +79,14 @@
 
         .timer-bar {
             height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px;
-            border-radius: 2px; transition: width 10s linear; /* Tempo visual da autodestruição */
+            border-radius: 2px; transition: width 10s linear;
         }
 
         /* ÁREA DE INPUT */
         #input-area {
             background: #050505; padding: 10px 15px; display: flex; align-items: center; gap: 10px;
-            border-top: 1px solid #222; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            border-top: 1px solid #222; 
+            padding-bottom: max(10px, env(safe-area-inset-bottom)); /* Espaço para a barrinha do iPhone */
         }
         #text-input {
             flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px;
@@ -88,14 +97,13 @@
         .action-btn {
             background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue);
             width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; cursor: pointer; transition: 0.2s; box-shadow: var(--neon-glow);
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s; box-shadow: var(--neon-glow); flex-shrink: 0;
         }
         .action-btn:active { background: var(--neon-blue); color: #000; }
         .recording { background: red !important; border-color: red !important; color: white !important; box-shadow: 0 0 15px red !important; animation: pulse 1s infinite; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
-        /* Estilo para o player de áudio invisível */
         audio { height: 30px; outline: none; width: 200px; filter: invert(100%) hue-rotate(180deg); }
     </style>
 </head>
@@ -122,7 +130,6 @@
     </div>
 
     <script>
-        // === PROTEÇÃO EXTRA VIA JS CONTRA DESKTOP ===
         if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             document.getElementById('app-container').style.display = 'none';
             document.getElementById('desktop-blocker').style.display = 'flex';
@@ -131,23 +138,18 @@
         const chatWindow = document.getElementById('chat-window');
         const textInput = document.getElementById('text-input');
 
-        // Permitir enviar com a tecla "Enter" no teclado do celular
         textInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') enviarTexto();
         });
 
-        // === FUNÇÃO DE ENVIAR TEXTO ===
         function enviarTexto() {
             const texto = textInput.value.trim();
             if (texto === '') return;
 
             renderizarMensagem(texto, 'sent', 'text');
             textInput.value = '';
-            
-            // Aqui entraria o envio via WebSocket para a outra pessoa
         }
 
-        // === LÓGICA DE RENDERIZAÇÃO E AUTODESTRUIÇÃO ===
         function renderizarMensagem(conteudo, tipo, formato) {
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${tipo}`;
@@ -166,7 +168,6 @@
                 bubble.appendChild(audioPlayer);
             }
 
-            // Barra visual de tempo
             const timerBar = document.createElement('div');
             timerBar.className = 'timer-bar';
             bubble.appendChild(timerBar);
@@ -175,20 +176,17 @@
             chatWindow.appendChild(wrapper);
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
-            // Anima a barrinha diminuindo
             setTimeout(() => { timerBar.style.width = '0%'; }, 50);
 
-            // AUTO-DESTRUIÇÃO TOTAL APÓS 10 SEGUNDOS
             setTimeout(() => {
                 const elemento = document.getElementById(msgId);
                 if (elemento) {
                     elemento.remove();
-                    if (formato === 'audio') URL.revokeObjectURL(conteudo); // Limpa o áudio da RAM
+                    if (formato === 'audio') URL.revokeObjectURL(conteudo);
                 }
-            }, 10000); // 10.000 ms = 10 segundos
+            }, 10000); 
         }
 
-        // === LÓGICA DE ÁUDIO EFÊMERO ===
         const btnMic = document.getElementById('btn-mic');
         let mediaRecorder;
         let audioChunks = [];
@@ -199,7 +197,7 @@
         btnMic.addEventListener('touchend', pararGravacao);
 
         function iniciarGravacao(e) {
-            e.preventDefault(); // Evita comportamentos duplos em touch
+            e.preventDefault(); 
             if (!navigator.mediaDevices) return alert("Microfone não suportado no navegador.");
 
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
@@ -212,7 +210,7 @@
                 };
 
                 mediaRecorder.start();
-            }).catch(err => alert("Permissão de microfone negada para o ARX."));
+            }).catch(err => alert("Permissão de microfone negada."));
         }
 
         function pararGravacao(e) {
@@ -227,7 +225,6 @@
                     
                     renderizarMensagem(audioUrl, 'sent', 'audio');
                     
-                    // Desliga o microfone para não deixar rastro ativo
                     mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 };
             }
