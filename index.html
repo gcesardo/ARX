@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARX MESSAGE</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        /* === VARIÁVEIS DE COR E TEMA === */
         :root {
             --bg-color: #050505;
             --neon-blue: #00f3ff;
@@ -14,20 +14,13 @@
             --text-color: #e0e0e0;
         }
 
-        /* === RESET BÁSICO === */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
         
         body { 
-            background-color: var(--bg-color); 
-            color: var(--text-color); 
-            position: fixed; 
-            top: 0; left: 0; right: 0; bottom: 0; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
+            background-color: var(--bg-color); color: var(--text-color); position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; overflow: hidden; 
         }
 
-        /* === BLOQUEIO DE DESKTOP === */
         #desktop-blocker {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; color: var(--neon-blue); z-index: 9999;
@@ -40,10 +33,8 @@
             #desktop-blocker { display: flex !important; }
         }
 
-        /* === LAYOUT DO APP === */
         #app-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
 
-        /* CABEÇALHO */
         header {
             background: #000; padding: 15px 20px; display: flex; align-items: center; justify-content: center;
             border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
@@ -51,13 +42,11 @@
         }
         header h1 { font-size: 1.2rem; color: var(--neon-blue); letter-spacing: 2px; text-shadow: var(--neon-glow); text-transform: uppercase; }
 
-        /* ÁREA DO CHAT */
         #chat-window {
             flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
         }
 
-        /* BALÕES DE MENSAGEM */
         .message-wrapper { display: flex; width: 100%; }
         .message-wrapper.sent { justify-content: flex-end; }
         .message-wrapper.received { justify-content: flex-start; }
@@ -65,26 +54,21 @@
         .message {
             max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative;
             background: var(--bubble-bg); border: 1px solid #222; font-size: 0.95rem;
-            /* EFEITO DE BORRAR (BLUR) REMOVIDO DAQUI */
         }
 
         .message-wrapper.sent .message {
-            border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.3);
-            box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.05);
+            border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.3); box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.05);
         }
         .message-wrapper.received .message { border-bottom-left-radius: 4px; border-color: #333; }
 
         .timer-bar {
             height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px;
-            border-radius: 2px; 
-            transition: width 20s linear; /* TEMPO VISUAL DA BARRA ALTERADO PARA 20s */
+            border-radius: 2px; transition: width 20s linear;
         }
 
-        /* ÁREA DE INPUT */
         #input-area {
             background: #050505; padding: 10px 15px; display: flex; align-items: center; gap: 10px;
-            border-top: 1px solid #222; 
-            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            border-top: 1px solid #222; padding-bottom: max(10px, env(safe-area-inset-bottom));
         }
         #text-input {
             flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px;
@@ -101,7 +85,6 @@
         .recording { background: red !important; border-color: red !important; color: white !important; box-shadow: 0 0 15px red !important; animation: pulse 1s infinite; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        
         audio { height: 30px; outline: none; width: 200px; filter: invert(100%) hue-rotate(180deg); }
     </style>
 </head>
@@ -113,13 +96,8 @@
     </div>
 
     <div id="app-container">
-        <header>
-            <h1>ARX Message</h1>
-        </header>
-
-        <div id="chat-window">
-            </div>
-
+        <header><h1>ARX Message</h1></header>
+        <div id="chat-window"></div>
         <div id="input-area">
             <input type="text" id="text-input" placeholder="Mensagem criptografada..." autocomplete="off">
             <button class="action-btn" id="btn-send" onclick="enviarTexto()">➤</button>
@@ -128,23 +106,55 @@
     </div>
 
     <script>
+        // BLOQUEIO PC
         if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             document.getElementById('app-container').style.display = 'none';
             document.getElementById('desktop-blocker').style.display = 'flex';
         }
 
+        // ==========================================
+        // 1. O MOTOR DO CHAT (LIGAÇÃO COM O RENDER)
+        // ==========================================
+        
+        // CONECTANDO AO SEU SERVIDOR ARX NO RENDER
+        const socket = io('https://arx-e8xb.onrender.com');
+
+        // ==========================================
+        // 2. SISTEMA DE SALA SECRETA (BURACO DE MINHOCA)
+        // ==========================================
+        let salaId = window.location.hash.substring(1);
+        if (!salaId) {
+            salaId = Math.random().toString(36).substring(2, 10); // Gera um código aleatório
+            window.location.hash = salaId; // Coloca na URL do navegador
+        }
+        socket.emit('entrar-na-sala', salaId); // Avisa o servidor em qual sala você está
+
+        // ==========================================
+        // 3. OUVINDO MENSAGENS DO OUTRO CELULAR
+        // ==========================================
+        socket.on('receber-mensagem', (dados) => {
+            let conteudoFinal = dados.conteudo;
+            if (dados.formato === 'audio') {
+                // Remonta o áudio que viajou invisível
+                const blob = new Blob([dados.conteudo], { type: 'audio/webm' });
+                conteudoFinal = URL.createObjectURL(blob);
+            }
+            renderizarMensagem(conteudoFinal, 'received', dados.formato);
+        });
+
+
         const chatWindow = document.getElementById('chat-window');
         const textInput = document.getElementById('text-input');
 
-        textInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') enviarTexto();
-        });
+        textInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') enviarTexto(); });
 
         function enviarTexto() {
             const texto = textInput.value.trim();
             if (texto === '') return;
 
             renderizarMensagem(texto, 'sent', 'text');
+            // ENVIA PARA O SERVIDOR RENDER
+            socket.emit('enviar-mensagem', { salaId: salaId, conteudo: texto, formato: 'text' });
             textInput.value = '';
         }
 
@@ -176,7 +186,7 @@
 
             setTimeout(() => { timerBar.style.width = '0%'; }, 50);
 
-            // TEMPO DE DESTRUIÇÃO ALTERADO PARA 20 SEGUNDOS (20000 ms)
+            // DESTRUIÇÃO EM 20 SEGUNDOS
             setTimeout(() => {
                 const elemento = document.getElementById(msgId);
                 if (elemento) {
@@ -186,6 +196,7 @@
             }, 20000); 
         }
 
+        // GRAVAÇÃO DE ÁUDIO
         const btnMic = document.getElementById('btn-mic');
         let mediaRecorder;
         let audioChunks = [];
@@ -197,17 +208,14 @@
 
         function iniciarGravacao(e) {
             e.preventDefault(); 
-            if (!navigator.mediaDevices) return alert("Microfone não suportado no navegador.");
+            if (!navigator.mediaDevices) return alert("Microfone não suportado.");
 
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                 mediaRecorder = new MediaRecorder(stream);
                 btnMic.classList.add('recording');
                 audioChunks = [];
 
-                mediaRecorder.ondataavailable = event => {
-                    if (event.data.size > 0) audioChunks.push(event.data);
-                };
-
+                mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
                 mediaRecorder.start();
             }).catch(err => alert("Permissão de microfone negada."));
         }
@@ -223,6 +231,8 @@
                     const audioUrl = URL.createObjectURL(audioBlob);
                     
                     renderizarMensagem(audioUrl, 'sent', 'audio');
+                    // ENVIA O ÁUDIO PARA O SERVIDOR RENDER
+                    socket.emit('enviar-mensagem', { salaId: salaId, conteudo: audioBlob, formato: 'audio' });
                     
                     mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 };
