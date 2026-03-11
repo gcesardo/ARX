@@ -25,7 +25,6 @@
         
         header img { max-height: 55px; width: auto; object-fit: contain; }
 
-        /* AVISO DO CONTADOR */
         #sala-timer {
             font-size: 0.75rem; color: #ff3e3e; text-transform: uppercase; letter-spacing: 1px;
             margin-top: 5px; font-weight: bold; text-shadow: 0 0 5px rgba(255, 62, 62, 0.5);
@@ -48,13 +47,21 @@
         .message-wrapper.sent .message { border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.4); }
         .message-wrapper.received .message { border-bottom-left-radius: 4px; border-color: #444; }
 
-        .timer-bar { height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px; border-radius: 2px; transition: width 50s linear; }
+        /* BARRA DE TEMPO AJUSTADA PARA 5 MINUTOS (300 segundos) */
+        .timer-bar { 
+            height: 2px; 
+            background: var(--neon-blue); 
+            width: 100%; 
+            margin-top: 5px; 
+            border-radius: 2px; 
+            transition: width 300s linear; 
+        }
 
         #input-area { background: #000; padding: 10px 15px; display: flex; align-items: center; gap: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
-        #text-input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 25px; outline: none; }
+        #text-input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 25px; outline: none; font-size: 1rem; }
         
-        .action-btn { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
-        .recording { background: red !important; border-color: red !important; animation: pulse 1s infinite; }
+        .action-btn { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; }
+        .recording { background: red !important; border-color: red !important; animation: pulse 1s infinite; color: white !important; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         audio { height: 30px; width: 200px; filter: invert(100%); }
     </style>
@@ -64,7 +71,7 @@
     <div id="app-container">
         <header>
             <img src="logo.png" alt="ARX">
-            <div id="sala-timer">ESTA SALA IRÁ EXPIRAR EM: --:--</div>
+            <div id="sala-timer">SINCRONIZANDO CRONÔMETRO...</div>
         </header>
         
         <div id="chat-window"></div>
@@ -77,13 +84,15 @@
     </div>
 
     <script>
+        // CONEXÃO COM O RENDER
         const socket = io('https://arx-e8xb.onrender.com');
+        
         let salaId = window.location.hash.substring(1) || Math.random().toString(36).substring(2, 10);
         window.location.hash = salaId;
 
         socket.on('connect', () => { socket.emit('entrar-na-sala', salaId); });
 
-        // LÓGICA DO CONTADOR DE TEMPO DA SALA
+        // CONTADOR DE EXPIRAÇÃO DA SALA (Mantido em ~10 min para dar tempo de entrarem)
         socket.on('info-sala', (dados) => {
             let segundosRestantes = Math.floor(dados.tempoRestante / 1000);
             const display = document.getElementById('sala-timer');
@@ -95,7 +104,9 @@
                 
                 if (segundosRestantes <= 0) {
                     clearInterval(intervalo);
-                    alert("A sala expirou e foi destruída.");
+                    display.innerText = "SALA EXPIRADA";
+                    alert("O tempo desta sala acabou. Ela foi destruída.");
+                    window.location.hash = ""; 
                     window.location.reload();
                 }
                 segundosRestantes--;
@@ -112,11 +123,12 @@
         });
 
         function enviarTexto() {
-            const texto = document.getElementById('text-input').value.trim();
+            const input = document.getElementById('text-input');
+            const texto = input.value.trim();
             if (!texto) return;
             renderizarMensagem(texto, 'sent', 'text');
             socket.emit('enviar-mensagem', { salaId, conteudo: texto, formato: 'text' });
-            document.getElementById('text-input').value = '';
+            input.value = '';
         }
 
         function renderizarMensagem(conteudo, tipo, formato) {
@@ -139,34 +151,50 @@
             document.getElementById('chat-window').appendChild(wrapper);
             document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
 
+            // Inicia animação da barra azul (5 minutos / 300 segundos)
             setTimeout(() => bar.style.width = '0%', 50);
-            setTimeout(() => wrapper.remove(), 50000); // 50 segundos na tela
+            
+            // Remove a mensagem da tela após 5 minutos (300.000 ms)
+            setTimeout(() => wrapper.remove(), 300000); 
         }
 
-        // --- GRAVAÇÃO DE ÁUDIO ---
+        // GRAVAÇÃO DE ÁUDIO
         const btnMic = document.getElementById('btn-mic');
         let mediaRecorder, audioChunks = [];
 
-        btnMic.addEventListener('touchstart', async (e) => {
+        async function iniciarGravacao(e) {
             e.preventDefault();
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                const url = URL.createObjectURL(blob);
-                renderizarMensagem(url, 'sent', 'audio');
-                socket.emit('enviar-mensagem', { salaId, conteudo: blob, formato: 'audio' });
-            };
-            mediaRecorder.start();
-            btnMic.classList.add('recording');
-        });
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const url = URL.createObjectURL(blob);
+                    renderizarMensagem(url, 'sent', 'audio');
+                    socket.emit('enviar-mensagem', { salaId, conteudo: blob, formato: 'audio' });
+                };
+                mediaRecorder.start();
+                btnMic.classList.add('recording');
+            } catch (err) {
+                alert("Erro ao acessar microfone. Verifique as permissões.");
+            }
+        }
 
-        btnMic.addEventListener('touchend', () => {
-            mediaRecorder.stop();
-            btnMic.classList.remove('recording');
-        });
+        function pararGravacao(e) {
+            e.preventDefault();
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                btnMic.classList.remove('recording');
+                mediaRecorder.stream.getTracks().forEach(t => t.stop());
+            }
+        }
+
+        btnMic.addEventListener('touchstart', iniciarGravacao);
+        btnMic.addEventListener('touchend', pararGravacao);
+        btnMic.addEventListener('mousedown', iniciarGravacao);
+        btnMic.addEventListener('mouseup', pararGravacao);
     </script>
 </body>
 </html>
