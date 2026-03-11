@@ -15,36 +15,80 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         
-        /* CORREÇÃO DA TELA: Ocupa 100% da tela do celular cravado */
         body { 
             background-color: var(--bg-color); color: var(--text-color); 
-            height: 100dvh; /* Garante o tamanho exato no mobile */
-            display: flex; flex-direction: column; overflow: hidden; 
+            height: 100dvh; display: flex; flex-direction: column; overflow: hidden; 
         }
 
-        #app-container { 
-            display: flex; flex-direction: column; flex: 1; height: 100%; width: 100%; 
+        /* --- TELA DE BLOQUEIO PC --- */
+        #desktop-blocker {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: var(--neon-blue); z-index: 9999;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
+        }
+        #desktop-blocker h1 { text-shadow: var(--neon-glow); margin-bottom: 10px; }
+        @media (min-width: 768px) {
+            #app-container { display: none !important; }
+            #desktop-blocker { display: flex !important; }
         }
 
-        /* CABEÇALHO FIXO NO TOPO */
+        #app-container { display: flex; flex-direction: column; flex: 1; height: 100%; width: 100%; }
+
+        /* =========================================
+           TELA 1: PÁGINA INICIAL (SAGUÃO)
+           ========================================= */
+        #landing-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; width: 100%; padding: 20px; text-align: center;
+            background-image: url('planodefundo.png'); background-size: cover; background-position: center;
+        }
+        
+        #landing-screen img { max-width: 180px; margin-bottom: 40px; filter: drop-shadow(0 0 10px rgba(0,243,255,0.3)); }
+        
+        .btn-neon {
+            background: transparent; border: 2px solid var(--neon-blue); color: var(--neon-blue);
+            padding: 15px 30px; font-size: 1.1rem; border-radius: 30px; cursor: pointer;
+            text-transform: uppercase; font-weight: bold; transition: 0.3s; box-shadow: var(--neon-glow);
+            margin-bottom: 20px;
+        }
+        .btn-neon:active { background: var(--neon-blue); color: #000; }
+
+        #link-box {
+            display: none; flex-direction: column; align-items: center; gap: 15px; width: 100%; max-width: 350px;
+            background: rgba(10, 10, 10, 0.9); padding: 25px; border-radius: 15px; border: 1px solid #333; backdrop-filter: blur(5px);
+        }
+        #link-box p { font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
+        #link-input {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--neon-blue);
+            background: #000; color: var(--neon-blue); text-align: center; font-size: 0.9rem; outline: none;
+        }
+        
+        .action-row { display: flex; gap: 10px; width: 100%; }
+        .action-row button { flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 0.9rem;}
+        .btn-copy { background: #333; color: white; transition: 0.2s; border: 1px solid #555; }
+        .btn-copy:active { background: #555; }
+        .btn-enter { background: var(--neon-blue); color: #000; box-shadow: var(--neon-glow); transition: 0.2s; }
+        .btn-enter:active { transform: scale(0.95); }
+
+        /* =========================================
+           TELA 2: CHAT (SALA SEGURA)
+           ========================================= */
+        #chat-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
+
         header {
             background: #000; padding: 5px 20px; display: flex; flex-direction: column; align-items: center;
             border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
-            padding-top: max(5px, env(safe-area-inset-top));
-            flex-shrink: 0; /* Impede que o cabeçalho seja esmagado */
+            padding-top: max(5px, env(safe-area-inset-top)); flex-shrink: 0; 
         }
-        
-        header img { max-height: 55px; width: auto; object-fit: contain; }
+        header img { max-height: 50px; width: auto; object-fit: contain; }
 
         #sala-timer {
             font-size: 0.75rem; color: #ff3e3e; text-transform: uppercase; letter-spacing: 1px;
             margin-top: 5px; font-weight: bold; text-shadow: 0 0 5px rgba(255, 62, 62, 0.5);
         }
 
-        /* ÁREA DE CHAT SCROLLÁVEL NO MEIO */
         #chat-window {
-            flex: 1; /* Estica a janela de chat para empurrar a barra para baixo */
-            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             background-image: url('planodefundo.png'); background-size: cover; background-position: center; background-attachment: fixed;
         }
 
@@ -60,24 +104,12 @@
         .message-wrapper.sent .message { border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.4); }
         .message-wrapper.received .message { border-bottom-left-radius: 4px; border-color: #444; }
 
-        .timer-bar { 
-            height: 2px; 
-            background: var(--neon-blue); 
-            width: 100%; 
-            margin-top: 5px; 
-            border-radius: 2px; 
-            transition: width 300s linear; 
-        }
+        .timer-bar { height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px; border-radius: 2px; transition: width 300s linear; }
 
-        /* BARRA DE TEXTO FIXA NO RODAPÉ */
         #input-area { 
             background: #000; padding: 10px 15px; display: flex; align-items: center; gap: 10px; 
-            padding-bottom: max(10px, env(safe-area-inset-bottom));
-            border-top: 1px solid #222;
-            flex-shrink: 0; /* Garante que a barra não suma */
-            margin-top: auto; /* Trava ela definitivamente lá embaixo */
+            padding-bottom: max(10px, env(safe-area-inset-bottom)); border-top: 1px solid #222; flex-shrink: 0; margin-top: auto; 
         }
-        
         #text-input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 25px; outline: none; font-size: 1rem; }
         
         .action-btn { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; }
@@ -88,66 +120,151 @@
 </head>
 <body>
 
-    <div id="app-container">
-        <header>
-            <img src="logo.png" alt="ARX">
-            <div id="sala-timer">SINCRONIZANDO CRONÔMETRO...</div>
-        </header>
-        
-        <div id="chat-window"></div>
+    <div id="desktop-blocker">
+        <h1>ARX MESSAGE</h1>
+        <p>Acesso negado. Sistema restrito a dispositivos móveis.</p>
+    </div>
 
-        <div id="input-area">
-            <input type="text" id="text-input" placeholder="Mensagem criptografada..." autocomplete="off">
-            <button class="action-btn" id="btn-send" onclick="enviarTexto()">➤</button>
-            <button class="action-btn" id="btn-mic">🎙</button>
+    <div id="app-container">
+        
+        <div id="landing-screen">
+            <img src="logo.png" alt="ARX Logo">
+            <button class="btn-neon" id="btn-criar" onclick="gerarNovaSala()">Criar Sala Segura</button>
+            
+            <div id="link-box">
+                <p>Envie este link para o contato:</p>
+                <input type="text" id="link-input" readonly>
+                <div class="action-row">
+                    <button class="btn-copy" onclick="copiarLink()">Copiar</button>
+                    <button class="btn-enter" onclick="entrarNaSalaCriada()">Entrar</button>
+                </div>
+            </div>
         </div>
+
+        <div id="chat-screen">
+            <header>
+                <img src="logo.png" alt="ARX">
+                <div id="sala-timer">SINCRONIZANDO CRONÔMETRO...</div>
+            </header>
+            
+            <div id="chat-window"></div>
+
+            <div id="input-area">
+                <input type="text" id="text-input" placeholder="Mensagem criptografada..." autocomplete="off">
+                <button class="action-btn" id="btn-send" onclick="enviarTexto()">➤</button>
+                <button class="action-btn" id="btn-mic">🎙</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // CONEXÃO COM O RENDER
-        const socket = io('https://arx-e8xb.onrender.com');
-        
-        let salaId = window.location.hash.substring(1) || Math.random().toString(36).substring(2, 10);
-        window.location.hash = salaId;
+        // ESCUDO ANTI-CURIOSOS (Bloqueia clique direito e F12)
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
+        }
 
-        socket.on('connect', () => { socket.emit('entrar-na-sala', salaId); });
+        // --- LÓGICA DE NAVEGAÇÃO (SAGUÃO VS CHAT) ---
+        let hashAtual = window.location.hash.substring(1);
+        let novoLinkGerado = "";
+        let socket; // O socket só será ligado se entrarmos na tela de chat
 
-        // CONTADOR DE EXPIRAÇÃO DA SALA (10 minutos)
-        socket.on('info-sala', (dados) => {
-            let segundosRestantes = Math.floor(dados.tempoRestante / 1000);
-            const display = document.getElementById('sala-timer');
+        if (hashAtual) {
+            // Se o usuário clicou no link que o amigo enviou (já tem o #codigo), vai direto pro chat
+            iniciarSistemaDeChat(hashAtual);
+        } else {
+            // Se acessou o link limpo, mostra a página inicial
+            document.getElementById('landing-screen').style.display = 'flex';
+        }
 
-            const intervalo = setInterval(() => {
-                let min = Math.floor(segundosRestantes / 60);
-                let seg = segundosRestantes % 60;
-                display.innerText = `ESTA SALA IRÁ EXPIRAR EM: ${min}:${seg < 10 ? '0' + seg : seg}`;
-                
-                if (segundosRestantes <= 0) {
-                    clearInterval(intervalo);
-                    display.innerText = "SALA EXPIRADA";
-                    alert("O tempo desta sala acabou. Ela foi destruída.");
-                    window.location.hash = ""; 
-                    window.location.reload();
+        // Funções da Página Inicial
+        function gerarNovaSala() {
+            const codigoSala = Math.random().toString(36).substring(2, 10);
+            // Monta o link completo com base na URL atual do seu site
+            novoLinkGerado = window.location.origin + window.location.pathname + '#' + codigoSala;
+            
+            document.getElementById('link-input').value = novoLinkGerado;
+            document.getElementById('btn-criar').style.display = 'none';
+            document.getElementById('link-box').style.display = 'flex';
+        }
+
+        function copiarLink() {
+            const input = document.getElementById('link-input');
+            input.select();
+            input.setSelectionRange(0, 99999); // Para mobile
+            navigator.clipboard.writeText(input.value);
+            
+            const btnCopy = document.querySelector('.btn-copy');
+            btnCopy.innerText = 'Copiado!';
+            btnCopy.style.background = '#28a745';
+            setTimeout(() => { btnCopy.innerText = 'Copiar'; btnCopy.style.background = '#333'; }, 2000);
+        }
+
+        function entrarNaSalaCriada() {
+            // Recarrega a página colocando o hash na URL. Isso fará o script cair direto no chat.
+            window.location.href = novoLinkGerado;
+            window.location.reload();
+        }
+
+        // --- LÓGICA DO CHAT (SÓ EXECUTA QUANDO ESTÁ NA SALA) ---
+        function iniciarSistemaDeChat(salaId) {
+            document.getElementById('landing-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
+
+            socket = io('https://arx-e8xb.onrender.com');
+
+            socket.on('connect', () => { socket.emit('entrar-na-sala', salaId); });
+
+            // Contador 10 Minutos
+            socket.on('info-sala', (dados) => {
+                let segundosRestantes = Math.floor(dados.tempoRestante / 1000);
+                const display = document.getElementById('sala-timer');
+
+                const intervalo = setInterval(() => {
+                    let min = Math.floor(segundosRestantes / 60);
+                    let seg = segundosRestantes % 60;
+                    display.innerText = `ESTA SALA IRÁ EXPIRAR EM: ${min}:${seg < 10 ? '0' + seg : seg}`;
+                    
+                    if (segundosRestantes <= 0) {
+                        clearInterval(intervalo);
+                        display.innerText = "SALA EXPIRADA";
+                        alert("O tempo desta sala acabou. Ela foi destruída.");
+                        window.location.hash = ""; // Limpa a URL
+                        window.location.reload();  // Volta pra página inicial
+                    }
+                    segundosRestantes--;
+                }, 1000);
+            });
+
+            socket.on('receber-mensagem', (dados) => {
+                let conteudo = dados.conteudo;
+                if (dados.formato === 'audio') {
+                    const blob = new Blob([dados.conteudo], { type: 'audio/webm' });
+                    conteudo = URL.createObjectURL(blob);
                 }
-                segundosRestantes--;
-            }, 1000);
-        });
+                renderizarMensagem(conteudo, 'received', dados.formato);
+            });
 
-        socket.on('receber-mensagem', (dados) => {
-            let conteudo = dados.conteudo;
-            if (dados.formato === 'audio') {
-                const blob = new Blob([dados.conteudo], { type: 'audio/webm' });
-                conteudo = URL.createObjectURL(blob);
-            }
-            renderizarMensagem(conteudo, 'received', dados.formato);
-        });
+            // Configura o envio de texto e enter
+            document.getElementById('text-input').addEventListener('keypress', function (e) { 
+                if (e.key === 'Enter') enviarTexto(); 
+            });
+
+            // Configura botão de microfone
+            const btnMic = document.getElementById('btn-mic');
+            btnMic.addEventListener('touchstart', iniciarGravacao);
+            btnMic.addEventListener('touchend', pararGravacao);
+            btnMic.addEventListener('mousedown', iniciarGravacao);
+            btnMic.addEventListener('mouseup', pararGravacao);
+        }
 
         function enviarTexto() {
             const input = document.getElementById('text-input');
             const texto = input.value.trim();
             if (!texto) return;
             renderizarMensagem(texto, 'sent', 'text');
-            socket.emit('enviar-mensagem', { salaId, conteudo: texto, formato: 'text' });
+            socket.emit('enviar-mensagem', { salaId: hashAtual, conteudo: texto, formato: 'text' });
             input.value = '';
         }
 
@@ -171,17 +288,13 @@
             document.getElementById('chat-window').appendChild(wrapper);
             document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
 
-            // Inicia animação da barra azul (5 minutos / 300 segundos)
+            // Animação 5 minutos (300s)
             setTimeout(() => bar.style.width = '0%', 50);
-            
-            // Remove a mensagem da tela após 5 minutos (300.000 ms)
             setTimeout(() => wrapper.remove(), 300000); 
         }
 
-        // GRAVAÇÃO DE ÁUDIO
-        const btnMic = document.getElementById('btn-mic');
+        // Lógica de Áudio Global
         let mediaRecorder, audioChunks = [];
-
         async function iniciarGravacao(e) {
             e.preventDefault();
             try {
@@ -193,28 +306,21 @@
                     const blob = new Blob(audioChunks, { type: 'audio/webm' });
                     const url = URL.createObjectURL(blob);
                     renderizarMensagem(url, 'sent', 'audio');
-                    socket.emit('enviar-mensagem', { salaId, conteudo: blob, formato: 'audio' });
+                    socket.emit('enviar-mensagem', { salaId: hashAtual, conteudo: blob, formato: 'audio' });
                 };
                 mediaRecorder.start();
-                btnMic.classList.add('recording');
-            } catch (err) {
-                alert("Erro ao acessar microfone. Verifique as permissões.");
-            }
+                document.getElementById('btn-mic').classList.add('recording');
+            } catch (err) { alert("Permissão de microfone negada."); }
         }
 
         function pararGravacao(e) {
             e.preventDefault();
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
-                btnMic.classList.remove('recording');
+                document.getElementById('btn-mic').classList.remove('recording');
                 mediaRecorder.stream.getTracks().forEach(t => t.stop());
             }
         }
-
-        btnMic.addEventListener('touchstart', iniciarGravacao);
-        btnMic.addEventListener('touchend', pararGravacao);
-        btnMic.addEventListener('mousedown', iniciarGravacao);
-        btnMic.addEventListener('mouseup', pararGravacao);
     </script>
 </body>
 </html>
