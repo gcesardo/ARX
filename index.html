@@ -35,30 +35,18 @@
 
         #app-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
 
-        /* CABEÇALHO COM A LOGO NOVA */
         header {
             background: #000; padding: 10px 20px; display: flex; align-items: center; justify-content: center;
             border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
             padding-top: max(10px, env(safe-area-inset-top)); 
         }
         
-        header img {
-            max-height: 45px; /* Tamanho ideal para não estourar a barra no celular */
-            width: auto;
-            object-fit: contain;
-        }
+        header img { max-height: 45px; width: auto; object-fit: contain; }
 
-        /* ÁREA DE CHAT COM O PLANO DE FUNDO */
         #chat-window {
             flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-            
-            /* Configuração do fundo cyber-segurança */
-            background-color: #050505;
-            background-image: url('planodefundo.png');
-            background-size: cover; /* Faz a imagem cobrir toda a tela */
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed; /* O fundo fica parado enquanto as mensagens sobem */
+            background-color: #050505; background-image: url('planodefundo.png');
+            background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; 
         }
 
         .message-wrapper { display: flex; width: 100%; }
@@ -67,9 +55,7 @@
 
         .message {
             max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative;
-            background: rgba(17, 17, 17, 0.9); /* Deixei o fundo da mensagem levemente transparente (90%) para o fundo do app aparecer um pouco */
-            border: 1px solid #222; font-size: 0.95rem;
-            backdrop-filter: blur(4px); /* Dá um efeito de "vidro" moderno no balão */
+            background: rgba(17, 17, 17, 0.9); border: 1px solid #222; font-size: 0.95rem; backdrop-filter: blur(4px); 
         }
 
         .message-wrapper.sent .message {
@@ -112,10 +98,7 @@
     </div>
 
     <div id="app-container">
-        <header>
-            <img src="logo.png" alt="ARX Message Logo">
-        </header>
-        
+        <header><img src="logo.png" alt="ARX Message Logo"></header>
         <div id="chat-window"></div>
         <div id="input-area">
             <input type="text" id="text-input" placeholder="Mensagem criptografada..." autocomplete="off">
@@ -131,15 +114,21 @@
             document.getElementById('desktop-blocker').style.display = 'flex';
         }
 
-        // CONECTANDO AO SEU SERVIDOR ARX NO RENDER
+        // CONECTANDO AO SERVIDOR
         const socket = io('https://arx-e8xb.onrender.com');
 
+        // GERA A SALA
         let salaId = window.location.hash.substring(1);
         if (!salaId) {
             salaId = Math.random().toString(36).substring(2, 10); 
             window.location.hash = salaId; 
         }
-        socket.emit('entrar-na-sala', salaId); 
+
+        // A CORREÇÃO DA SONECA: Garante que você sempre retorne à sala correta
+        socket.on('connect', () => {
+            console.log('Conectado! Entrando na sala: ' + salaId);
+            socket.emit('entrar-na-sala', salaId); 
+        });
 
         socket.on('receber-mensagem', (dados) => {
             let conteudoFinal = dados.conteudo;
@@ -192,7 +181,6 @@
 
             setTimeout(() => { timerBar.style.width = '0%'; }, 50);
 
-            // DESTRUIÇÃO EM 20 SEGUNDOS
             setTimeout(() => {
                 const elemento = document.getElementById(msgId);
                 if (elemento) {
@@ -214,7 +202,7 @@
 
         function iniciarGravacao(e) {
             e.preventDefault(); 
-            if (!navigator.mediaDevices) return alert("Microfone não suportado.");
+            if (!navigator.mediaDevices) return alert("Microfone não suportado no navegador.");
 
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                 mediaRecorder = new MediaRecorder(stream);
