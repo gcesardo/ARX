@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARX MESSAGE</title>
+    <style>
+        /* === VARIÁVEIS DE COR E TEMA === */
+        :root {
+            --bg-color: #050505;
+            --neon-blue: #00f3ff;
+            --neon-glow: 0 0 10px rgba(0, 243, 255, 0.5);
+            --bubble-bg: #111;
+            --text-color: #e0e0e0;
+        }
+
+        /* === RESET BÁSICO === */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* === BLOQUEIO DE DESKTOP === */
+        #desktop-blocker {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: var(--neon-blue); z-index: 9999;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
+        }
+        #desktop-blocker h1 { text-shadow: var(--neon-glow); margin-bottom: 10px; }
+        
+        /* Regra CSS: Se a tela for maior que 768px (Tablet/PC), esconde o app e mostra o aviso */
+        @media (min-width: 768px) {
+            #app-container { display: none !important; }
+            #desktop-blocker { display: flex !important; }
+        }
+
+        /* === LAYOUT DO APP === */
+        #app-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
+
+        /* CABEÇALHO */
+        header {
+            background: #000; padding: 15px 20px; display: flex; align-items: center; justify-content: center;
+            border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
+        }
+        header h1 { font-size: 1.2rem; color: var(--neon-blue); letter-spacing: 2px; text-shadow: var(--neon-glow); text-transform: uppercase; }
+
+        /* ÁREA DO CHAT */
+        #chat-window {
+            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
+        }
+
+        /* BALÕES DE MENSAGEM */
+        .message-wrapper { display: flex; width: 100%; }
+        .message-wrapper.sent { justify-content: flex-end; }
+        .message-wrapper.received { justify-content: flex-start; }
+
+        .message {
+            max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative;
+            background: var(--bubble-bg); border: 1px solid #222; font-size: 0.95rem;
+            /* EFEITO DE SEGURANÇA: Borrado por padrão */
+            filter: blur(6px); transition: filter 0.3s ease; user-select: none;
+        }
+        
+        /* Revela ao tocar/segurar */
+        .message:active, .message.revealed { filter: blur(0); }
+
+        .message-wrapper.sent .message {
+            border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.3);
+            box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.05);
+        }
+        .message-wrapper.received .message { border-bottom-left-radius: 4px; border-color: #333; }
+
+        .timer-bar {
+            height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px;
+            border-radius: 2px; transition: width 10s linear; /* Tempo visual da autodestruição */
+        }
+
+        /* ÁREA DE INPUT */
+        #input-area {
+            background: #050505; padding: 10px 15px; display: flex; align-items: center; gap: 10px;
+            border-top: 1px solid #222; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+        }
+        #text-input {
+            flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px;
+            border-radius: 25px; outline: none; transition: border 0.3s; font-size: 1rem;
+        }
+        #text-input:focus { border-color: var(--neon-blue); box-shadow: var(--neon-glow); }
+        
+        .action-btn {
+            background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue);
+            width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s; box-shadow: var(--neon-glow);
+        }
+        .action-btn:active { background: var(--neon-blue); color: #000; }
+        .recording { background: red !important; border-color: red !important; color: white !important; box-shadow: 0 0 15px red !important; animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        
+        /* Estilo para o player de áudio invisível */
+        audio { height: 30px; outline: none; width: 200px; filter: invert(100%) hue-rotate(180deg); }
+    </style>
+</head>
+<body>
+
+    <div id="desktop-blocker">
+        <h1>ARX MESSAGE</h1>
+        <p>Acesso negado. Sistema restrito a dispositivos móveis.</p>
+    </div>
+
+    <div id="app-container">
+        <header>
+            <h1>ARX Message</h1>
+        </header>
+
+        <div id="chat-window">
+            </div>
+
+        <div id="input-area">
+            <input type="text" id="text-input" placeholder="Mensagem criptografada..." autocomplete="off">
+            <button class="action-btn" id="btn-send" onclick="enviarTexto()">➤</button>
+            <button class="action-btn" id="btn-mic">🎙</button>
+        </div>
+    </div>
+
+    <script>
+        // === PROTEÇÃO EXTRA VIA JS CONTRA DESKTOP ===
+        if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('desktop-blocker').style.display = 'flex';
+        }
+
+        const chatWindow = document.getElementById('chat-window');
+        const textInput = document.getElementById('text-input');
+
+        // Permitir enviar com a tecla "Enter" no teclado do celular
+        textInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') enviarTexto();
+        });
+
+        // === FUNÇÃO DE ENVIAR TEXTO ===
+        function enviarTexto() {
+            const texto = textInput.value.trim();
+            if (texto === '') return;
+
+            renderizarMensagem(texto, 'sent', 'text');
+            textInput.value = '';
+            
+            // Aqui entraria o envio via WebSocket para a outra pessoa
+        }
+
+        // === LÓGICA DE RENDERIZAÇÃO E AUTODESTRUIÇÃO ===
+        function renderizarMensagem(conteudo, tipo, formato) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${tipo}`;
+            const msgId = 'msg-' + Date.now();
+            wrapper.id = msgId;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message';
+
+            if (formato === 'text') {
+                bubble.innerText = conteudo;
+            } else if (formato === 'audio') {
+                const audioPlayer = document.createElement('audio');
+                audioPlayer.controls = true;
+                audioPlayer.src = conteudo;
+                bubble.appendChild(audioPlayer);
+            }
+
+            // Barra visual de tempo
+            const timerBar = document.createElement('div');
+            timerBar.className = 'timer-bar';
+            bubble.appendChild(timerBar);
+            
+            wrapper.appendChild(bubble);
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            // Anima a barrinha diminuindo
+            setTimeout(() => { timerBar.style.width = '0%'; }, 50);
+
+            // AUTO-DESTRUIÇÃO TOTAL APÓS 10 SEGUNDOS
+            setTimeout(() => {
+                const elemento = document.getElementById(msgId);
+                if (elemento) {
+                    elemento.remove();
+                    if (formato === 'audio') URL.revokeObjectURL(conteudo); // Limpa o áudio da RAM
+                }
+            }, 10000); // 10.000 ms = 10 segundos
+        }
+
+        // === LÓGICA DE ÁUDIO EFÊMERO ===
+        const btnMic = document.getElementById('btn-mic');
+        let mediaRecorder;
+        let audioChunks = [];
+
+        btnMic.addEventListener('mousedown', iniciarGravacao);
+        btnMic.addEventListener('touchstart', iniciarGravacao);
+        btnMic.addEventListener('mouseup', pararGravacao);
+        btnMic.addEventListener('touchend', pararGravacao);
+
+        function iniciarGravacao(e) {
+            e.preventDefault(); // Evita comportamentos duplos em touch
+            if (!navigator.mediaDevices) return alert("Microfone não suportado no navegador.");
+
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                btnMic.classList.add('recording');
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    if (event.data.size > 0) audioChunks.push(event.data);
+                };
+
+                mediaRecorder.start();
+            }).catch(err => alert("Permissão de microfone negada para o ARX."));
+        }
+
+        function pararGravacao(e) {
+            e.preventDefault();
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                btnMic.classList.remove('recording');
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    renderizarMensagem(audioUrl, 'sent', 'audio');
+                    
+                    // Desliga o microfone para não deixar rastro ativo
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                };
+            }
+        }
+    </script>
+</body>
+</html>
