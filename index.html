@@ -15,94 +15,49 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         
-        body { 
-            background-color: var(--bg-color); color: var(--text-color); 
-            height: 100dvh; display: flex; flex-direction: column; overflow: hidden; 
-        }
+        body { background-color: var(--bg-color); color: var(--text-color); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* --- TELA DE BLOQUEIO PC --- */
         #desktop-blocker {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; color: var(--neon-blue); z-index: 9999;
             flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
         }
         #desktop-blocker h1 { text-shadow: var(--neon-glow); margin-bottom: 10px; }
-        @media (min-width: 768px) {
-            #app-container { display: none !important; }
-            #desktop-blocker { display: flex !important; }
-        }
+        @media (min-width: 768px) { #app-container { display: none !important; } #desktop-blocker { display: flex !important; } }
 
         #app-container { display: flex; flex-direction: column; flex: 1; height: 100%; width: 100%; }
 
-        /* =========================================
-           TELA 1: PÁGINA INICIAL (SAGUÃO)
-           ========================================= */
         #landing-screen {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100%; width: 100%; padding: 20px; text-align: center;
-            background-image: url('planodefundo.png'); background-size: cover; background-position: center;
-            position: relative;
+            background-image: url('planodefundo.png'); background-size: cover; background-position: center; position: relative;
         }
         
         #landing-screen img { 
-            max-width: 250px; 
-            margin-bottom: 50px; 
+            max-width: 250px; margin-bottom: 50px; 
             filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6)) drop-shadow(0 0 30px rgba(0, 243, 255, 0.2)); 
             animation: logo-pulsar 3s infinite alternate;
         }
         
         .btn-neon {
-            background-color: var(--neon-blue); 
-            border: none; 
-            color: #000; 
-            padding: 22px 50px; 
-            font-size: 1.4rem; 
-            border-radius: 40px; 
-            cursor: pointer;
-            text-transform: uppercase; 
-            font-weight: 800; 
-            letter-spacing: 3px; 
-            transition: 0.3s ease; 
-            box-shadow: var(--neon-glow); 
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden; 
+            background-color: var(--neon-blue); border: none; color: #000; padding: 22px 50px; 
+            font-size: 1.4rem; border-radius: 40px; cursor: pointer; text-transform: uppercase; 
+            font-weight: 800; letter-spacing: 3px; transition: 0.3s ease; box-shadow: var(--neon-glow); 
+            margin-bottom: 20px; position: relative; overflow: hidden; 
         }
-
         .btn-neon::after {
-            content: '';
-            position: absolute;
-            top: -100%;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.4), transparent);
-            animation: scan-luz 2s infinite;
+            content: ''; position: absolute; top: -100%; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.4), transparent); animation: scan-luz 2s infinite;
         }
-
-        .btn-neon:hover {
-            box-shadow: 0 0 25px rgba(0, 243, 255, 0.9), 0 0 50px rgba(0, 243, 255, 0.6);
-            transform: translateY(-3px);
-        }
-
-        .btn-neon:active { 
-            transform: scale(0.95);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
-            background-color: #00b8c4; 
-        }
+        .btn-neon:hover { box-shadow: 0 0 25px rgba(0, 243, 255, 0.9), 0 0 50px rgba(0, 243, 255, 0.6); transform: translateY(-3px); }
+        .btn-neon:active { transform: scale(0.95); box-shadow: 0 0 10px rgba(0, 243, 255, 0.5); background-color: #00b8c4; }
 
         #link-box {
             display: none; flex-direction: column; align-items: center; gap: 15px; width: 100%; max-width: 350px;
-            background: rgba(10, 10, 10, 0.9); padding: 25px; border-radius: 15px; border: 1px solid #333; backdrop-filter: blur(5px);
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: rgba(10, 10, 10, 0.9); padding: 25px; border-radius: 15px; border: 1px solid #333; backdrop-filter: blur(5px); box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         #link-box p { font-size: 0.85rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;}
-        #link-input {
-            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--neon-blue);
-            background: #000; color: var(--neon-blue); text-align: center; font-size: 0.9rem; outline: none;
-            box-shadow: inset 0 0 5px rgba(0,243,255,0.2);
-        }
-        
+        #link-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--neon-blue); background: #000; color: var(--neon-blue); text-align: center; font-size: 0.9rem; outline: none; box-shadow: inset 0 0 5px rgba(0,243,255,0.2); }
         .action-row { display: flex; gap: 10px; width: 100%; }
         .action-row button { flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 0.9rem; transition: 0.2s;}
         .btn-copy { background: #333; color: white; border: 1px solid #555; }
@@ -110,60 +65,27 @@
         .btn-enter { background: var(--neon-blue); color: #000; box-shadow: var(--neon-glow); }
         .btn-enter:active { transform: scale(0.95); background-color: #00b8c4;}
 
-        /* --- TELA 2: CHAT (SALA SEGURA) --- */
         #chat-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
-
-        header {
-            background: #000; padding: 5px 20px; display: flex; flex-direction: column; align-items: center;
-            border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10;
-            padding-top: max(5px, env(safe-area-inset-top)); flex-shrink: 0; 
-        }
+        header { background: #000; padding: 5px 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--neon-blue); box-shadow: 0 2px 15px rgba(0, 243, 255, 0.2); z-index: 10; padding-top: max(5px, env(safe-area-inset-top)); flex-shrink: 0; }
         header img { max-height: 50px; width: auto; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0,243,255,0.3));}
-
-        #sala-timer {
-            font-size: 0.75rem; color: #ff3e3e; text-transform: uppercase; letter-spacing: 1px;
-            margin-top: 5px; font-weight: bold; text-shadow: 0 0 5px rgba(255, 62, 62, 0.5);
-        }
-
-        #chat-window {
-            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-            background-image: url('planodefundo.png'); background-size: cover; background-position: center; background-attachment: fixed;
-        }
-
+        #sala-timer { font-size: 0.75rem; color: #ff3e3e; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; font-weight: bold; text-shadow: 0 0 5px rgba(255, 62, 62, 0.5); }
+        #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-image: url('planodefundo.png'); background-size: cover; background-position: center; background-attachment: fixed; }
         .message-wrapper { display: flex; width: 100%; flex-shrink: 0; }
         .message-wrapper.sent { justify-content: flex-end; }
         .message-wrapper.received { justify-content: flex-start; }
-
-        .message {
-            max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative;
-            background: rgba(17, 17, 17, 0.9); border: 1px solid #222; font-size: 0.95rem; backdrop-filter: blur(4px);
-        }
-
+        .message { max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative; background: rgba(17, 17, 17, 0.9); border: 1px solid #222; font-size: 0.95rem; backdrop-filter: blur(4px); }
         .message-wrapper.sent .message { border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.4); box-shadow: inset 0 0 10px rgba(0,243,255,0.05);}
         .message-wrapper.received .message { border-bottom-left-radius: 4px; border-color: #444; }
-
         .timer-bar { height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px; border-radius: 2px; transition: width 300s linear; box-shadow: 0 0 5px var(--neon-blue);}
-
-        #input-area { 
-            background: #000; padding: 10px 15px; display: flex; align-items: center; gap: 10px; 
-            padding-bottom: max(10px, env(safe-area-inset-bottom)); border-top: 1px solid #222; flex-shrink: 0; margin-top: auto; 
-        }
+        #input-area { background: #000; padding: 10px 15px; display: flex; align-items: center; gap: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom)); border-top: 1px solid #222; flex-shrink: 0; margin-top: auto; }
         #text-input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 25px; outline: none; font-size: 1rem; }
         #text-input:focus { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0,243,255,0.2);}
-        
         .action-btn { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; transition: 0.2s; box-shadow: 0 0 10px rgba(0,243,255,0.2);}
         .action-btn:active { background-color: var(--neon-blue); color: #000; box-shadow: var(--neon-glow);}
-        
         .recording { background: red !important; border-color: red !important; animation: pulse-vermelho 1s infinite; color: white !important; box-shadow: 0 0 15px red !important;}
-        
-        /* --- ANIMAÇÕES --- */
-        @keyframes logo-pulsar {
-            from { filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6)) drop-shadow(0 0 30px rgba(0, 243, 255, 0.2)); }
-            to { filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.8)) drop-shadow(0 0 50px rgba(0, 243, 255, 0.4)); }
-        }
+        @keyframes logo-pulsar { from { filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6)) drop-shadow(0 0 30px rgba(0, 243, 255, 0.2)); } to { filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.8)) drop-shadow(0 0 50px rgba(0, 243, 255, 0.4)); } }
         @keyframes scan-luz { to { top: 100%; } }
         @keyframes pulse-vermelho { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-
         audio { height: 30px; width: 200px; filter: invert(100%); }
     </style>
 </head>
@@ -171,9 +93,9 @@
 
     <div id="inapp-blocker" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#050505; color:var(--neon-blue); z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
         <h2 style="color: #ff3e3e; text-shadow: 0 0 10px red; margin-bottom: 20px; font-size: 1.8rem; text-transform: uppercase;">⚠️ Acesso Restrito</h2>
-        <p style="font-size: 1.1rem; margin-bottom: 15px; color: #fff; line-height: 1.5;">O navegador interno do aplicativo bloqueia as permissões do microfone.</p>
-        <p style="font-size: 1rem; color: #aaa; margin-bottom: 25px; line-height: 1.5;">Para acessar a sala de forma segura, clique nos <strong>3 pontinhos</strong> (⋮) no canto superior direito e escolha:</p>
-        <h3 style="font-size: 1.2rem; border: 2px solid var(--neon-blue); padding: 15px; border-radius: 10px; box-shadow: var(--neon-glow); color: #fff;">"Abrir no Chrome" ou "Abrir no Safari"</h3>
+        <p style="font-size: 1.1rem; margin-bottom: 15px; color: #fff; line-height: 1.5;">O navegador interno bloqueia a criptografia de áudio.</p>
+        <p style="font-size: 1rem; color: #aaa; margin-bottom: 25px; line-height: 1.5;">Clique nos <strong>3 pontinhos</strong> (⋮) ou na <strong>Bússola</strong> no canto da tela e escolha:</p>
+        <h3 style="font-size: 1.2rem; border: 2px solid var(--neon-blue); padding: 15px; border-radius: 10px; box-shadow: var(--neon-glow); color: #fff;">"Abrir no Chrome / Safari"</h3>
     </div>
 
     <div id="desktop-blocker">
@@ -182,11 +104,9 @@
     </div>
 
     <div id="app-container">
-        
         <div id="landing-screen">
             <img src="logo.png" alt="ARX Logo">
             <button class="btn-neon" id="btn-criar" onclick="gerarNovaSala()">Criar Sala Segura</button>
-            
             <div id="link-box">
                 <p>Envie este link para o contato:</p>
                 <input type="text" id="link-input" readonly>
@@ -202,52 +122,47 @@
                 <img src="logo.png" alt="ARX">
                 <div id="sala-timer">SINCRONIZANDO CRONÔMETRO...</div>
             </header>
-            
             <div id="chat-window"></div>
-
             <div id="input-area">
                 <input type="text" id="text-input" placeholder="Mensagem criptografada..." autocomplete="off">
                 <button class="action-btn" id="btn-send" onclick="enviarTexto()">➤</button>
                 <button class="action-btn" id="btn-mic">🎙</button>
             </div>
         </div>
-
     </div>
 
     <script>
-        // DETECTOR DE WHATSAPP / INSTAGRAM / FACEBOOK
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isWhatsApp = (ua.indexOf('WhatsApp') > -1);
-        const isInstagram = (ua.indexOf('Instagram') > -1);
-        const isFacebook = (ua.indexOf('FBAN') > -1) || (ua.indexOf('FBAV') > -1);
+        // DETECTOR DE NAVEGADOR INTERNO BLINDADO
+        const ua = navigator.userAgent.toLowerCase();
+        const isInApp = ua.includes('whatsapp') || ua.includes('instagram') || ua.includes('fban') || ua.includes('fbav') || ua.includes('wv');
 
-        if (isWhatsApp || isInstagram || isFacebook) {
+        if (isInApp) {
             document.getElementById('app-container').style.display = 'none';
             document.getElementById('inapp-blocker').style.display = 'flex';
         }
 
-        // ESCUDO ANTI-CURIOSOS (Bloqueia clique direito e F12)
+        // ESCUDO ANTI-CURIOSOS
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
             if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
         }
 
-        // --- LÓGICA DE NAVEGAÇÃO (SAGUÃO VS CHAT) ---
         let hashAtual = window.location.hash.substring(1);
         let novoLinkGerado = "";
         let socket; 
 
-        if (hashAtual && !isWhatsApp && !isInstagram && !isFacebook) {
-            iniciarSistemaDeChat(hashAtual);
-        } else if (!isWhatsApp && !isInstagram && !isFacebook) {
-            document.getElementById('landing-screen').style.display = 'flex';
+        // Só abre a tela inicial ou o chat se NÃO estiver dentro do WhatsApp
+        if (!isInApp) {
+            if (hashAtual) {
+                iniciarSistemaDeChat(hashAtual);
+            } else {
+                document.getElementById('landing-screen').style.display = 'flex';
+            }
         }
 
-        // Funções da Página Inicial
         function gerarNovaSala() {
             const codigoSala = Math.random().toString(36).substring(2, 10);
             novoLinkGerado = window.location.origin + window.location.pathname + '#' + codigoSala;
-            
             document.getElementById('link-input').value = novoLinkGerado;
             document.getElementById('btn-criar').style.display = 'none';
             document.getElementById('link-box').style.display = 'flex';
@@ -258,7 +173,6 @@
             input.select();
             input.setSelectionRange(0, 99999); 
             navigator.clipboard.writeText(input.value);
-            
             const btnCopy = document.querySelector('.btn-copy');
             btnCopy.innerText = 'Copiado!';
             btnCopy.style.background = '#28a745';
@@ -271,16 +185,13 @@
             window.location.reload();
         }
 
-        // --- LÓGICA DO CHAT ---
         function iniciarSistemaDeChat(salaId) {
             document.getElementById('landing-screen').style.display = 'none';
             document.getElementById('chat-screen').style.display = 'flex';
 
             socket = io('https://arx-e8xb.onrender.com');
-
             socket.on('connect', () => { socket.emit('entrar-na-sala', salaId); });
 
-            // Contador 10 Minutos
             socket.on('info-sala', (dados) => {
                 let segundosRestantes = Math.floor(dados.tempoRestante / 1000);
                 const display = document.getElementById('sala-timer');
@@ -289,7 +200,6 @@
                     let min = Math.floor(segundosRestantes / 60);
                     let seg = segundosRestantes % 60;
                     display.innerText = `ESTA SALA IRÁ EXPIRAR EM: ${min}:${seg < 10 ? '0' + seg : seg}`;
-                    
                     if (segundosRestantes <= 0) {
                         clearInterval(intervalo);
                         display.innerText = "SALA EXPIRADA";
@@ -310,10 +220,7 @@
                 renderizarMensagem(conteudo, 'received', dados.formato);
             });
 
-            document.getElementById('text-input').addEventListener('keypress', function (e) { 
-                if (e.key === 'Enter') enviarTexto(); 
-            });
-
+            document.getElementById('text-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') enviarTexto(); });
             const btnMic = document.getElementById('btn-mic');
             btnMic.addEventListener('touchstart', iniciarGravacao);
             btnMic.addEventListener('touchend', pararGravacao);
@@ -335,53 +242,30 @@
             wrapper.className = `message-wrapper ${tipo}`;
             const bubble = document.createElement('div');
             bubble.className = 'message';
-
             if (formato === 'text') bubble.innerText = conteudo;
-            else {
-                const audio = document.createElement('audio');
-                audio.src = conteudo; audio.controls = true;
-                bubble.appendChild(audio);
-            }
-
-            const bar = document.createElement('div');
-            bar.className = 'timer-bar';
-            bubble.appendChild(bar);
-            wrapper.appendChild(bubble);
-            document.getElementById('chat-window').appendChild(wrapper);
-            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-
-            // Animação 5 minutos (300s)
-            setTimeout(() => bar.style.width = '0%', 50);
-            setTimeout(() => wrapper.remove(), 300000); 
+            else { const audio = document.createElement('audio'); audio.src = conteudo; audio.controls = true; bubble.appendChild(audio); }
+            const bar = document.createElement('div'); bar.className = 'timer-bar'; bubble.appendChild(bar); wrapper.appendChild(bubble);
+            document.getElementById('chat-window').appendChild(wrapper); document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+            setTimeout(() => bar.style.width = '0%', 50); setTimeout(() => wrapper.remove(), 300000); 
         }
 
-        // Lógica de Áudio Global
         let mediaRecorder, audioChunks = [];
         async function iniciarGravacao(e) {
             e.preventDefault();
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
+                mediaRecorder = new MediaRecorder(stream); audioChunks = [];
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const url = URL.createObjectURL(blob);
-                    renderizarMensagem(url, 'sent', 'audio');
-                    socket.emit('enviar-mensagem', { salaId: hashAtual, conteudo: blob, formato: 'audio' });
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' }); const url = URL.createObjectURL(blob);
+                    renderizarMensagem(url, 'sent', 'audio'); socket.emit('enviar-mensagem', { salaId: hashAtual, conteudo: blob, formato: 'audio' });
                 };
-                mediaRecorder.start();
-                document.getElementById('btn-mic').classList.add('recording');
+                mediaRecorder.start(); document.getElementById('btn-mic').classList.add('recording');
             } catch (err) { alert("Permissão de microfone negada."); }
         }
-
         function pararGravacao(e) {
             e.preventDefault();
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                document.getElementById('btn-mic').classList.remove('recording');
-                mediaRecorder.stream.getTracks().forEach(t => t.stop());
-            }
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); document.getElementById('btn-mic').classList.remove('recording'); mediaRecorder.stream.getTracks().forEach(t => t.stop()); }
         }
     </script>
 </body>
