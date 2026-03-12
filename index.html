@@ -44,35 +44,31 @@
             position: relative;
         }
         
-        /* LOGO MAIOR E COM BRILHO MAIS INTENSO */
         #landing-screen img { 
-            max-width: 250px; /* Aumentado de 180px */
+            max-width: 250px; 
             margin-bottom: 50px; 
-            /* Filtro de brilho neon na logo */
             filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6)) drop-shadow(0 0 30px rgba(0, 243, 255, 0.2)); 
             animation: logo-pulsar 3s infinite alternate;
         }
         
-        /* BOTÃO MAIOR, PREENCHIDO E MAIS TECNOLÓGICO */
         .btn-neon {
-            background-color: var(--neon-blue); /* Preenchimento neon */
+            background-color: var(--neon-blue); 
             border: none; 
-            color: #000; /* Texto preto para contraste */
-            padding: 22px 50px; /* Bem maior */
-            font-size: 1.4rem; /* Fonte maior */
+            color: #000; 
+            padding: 22px 50px; 
+            font-size: 1.4rem; 
             border-radius: 40px; 
             cursor: pointer;
             text-transform: uppercase; 
-            font-weight: 800; /* Mais negrito */
-            letter-spacing: 3px; /* Espaçamento tecnológico entre letras */
+            font-weight: 800; 
+            letter-spacing: 3px; 
             transition: 0.3s ease; 
-            box-shadow: var(--neon-glow); /* Brilho intenso */
+            box-shadow: var(--neon-glow); 
             margin-bottom: 20px;
             position: relative;
-            overflow: hidden; /* Necessário para o efeito de varredura */
+            overflow: hidden; 
         }
 
-        /* Efeito de varredura de luz (scanline) no botão */
         .btn-neon::after {
             content: '';
             position: absolute;
@@ -92,7 +88,7 @@
         .btn-neon:active { 
             transform: scale(0.95);
             box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
-            background-color: #00b8c4; /* escurece um pouco no clique */
+            background-color: #00b8c4; 
         }
 
         #link-box {
@@ -165,15 +161,20 @@
             from { filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6)) drop-shadow(0 0 30px rgba(0, 243, 255, 0.2)); }
             to { filter: drop-shadow(0 0 25px rgba(0, 243, 255, 0.8)) drop-shadow(0 0 50px rgba(0, 243, 255, 0.4)); }
         }
-        @keyframes scan-luz {
-            to { top: 100%; }
-        }
+        @keyframes scan-luz { to { top: 100%; } }
         @keyframes pulse-vermelho { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
         audio { height: 30px; width: 200px; filter: invert(100%); }
     </style>
 </head>
 <body>
+
+    <div id="inapp-blocker" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#050505; color:var(--neon-blue); z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
+        <h2 style="color: #ff3e3e; text-shadow: 0 0 10px red; margin-bottom: 20px; font-size: 1.8rem; text-transform: uppercase;">⚠️ Acesso Restrito</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 15px; color: #fff; line-height: 1.5;">O navegador interno do aplicativo bloqueia as permissões do microfone.</p>
+        <p style="font-size: 1rem; color: #aaa; margin-bottom: 25px; line-height: 1.5;">Para acessar a sala de forma segura, clique nos <strong>3 pontinhos</strong> (⋮) no canto superior direito e escolha:</p>
+        <h3 style="font-size: 1.2rem; border: 2px solid var(--neon-blue); padding: 15px; border-radius: 10px; box-shadow: var(--neon-glow); color: #fff;">"Abrir no Chrome" ou "Abrir no Safari"</h3>
+    </div>
 
     <div id="desktop-blocker">
         <h1>ARX MESSAGE</h1>
@@ -214,6 +215,17 @@
     </div>
 
     <script>
+        // DETECTOR DE WHATSAPP / INSTAGRAM / FACEBOOK
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isWhatsApp = (ua.indexOf('WhatsApp') > -1);
+        const isInstagram = (ua.indexOf('Instagram') > -1);
+        const isFacebook = (ua.indexOf('FBAN') > -1) || (ua.indexOf('FBAV') > -1);
+
+        if (isWhatsApp || isInstagram || isFacebook) {
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('inapp-blocker').style.display = 'flex';
+        }
+
         // ESCUDO ANTI-CURIOSOS (Bloqueia clique direito e F12)
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
@@ -223,20 +235,17 @@
         // --- LÓGICA DE NAVEGAÇÃO (SAGUÃO VS CHAT) ---
         let hashAtual = window.location.hash.substring(1);
         let novoLinkGerado = "";
-        let socket; // O socket só será ligado se entrarmos na tela de chat
+        let socket; 
 
-        if (hashAtual) {
-            // Se o usuário clicou no link que o amigo enviou (já tem o #codigo), vai direto pro chat
+        if (hashAtual && !isWhatsApp && !isInstagram && !isFacebook) {
             iniciarSistemaDeChat(hashAtual);
-        } else {
-            // Se acessou o link limpo, mostra a página inicial
+        } else if (!isWhatsApp && !isInstagram && !isFacebook) {
             document.getElementById('landing-screen').style.display = 'flex';
         }
 
         // Funções da Página Inicial
         function gerarNovaSala() {
             const codigoSala = Math.random().toString(36).substring(2, 10);
-            // Monta o link completo com base na URL atual do seu site
             novoLinkGerado = window.location.origin + window.location.pathname + '#' + codigoSala;
             
             document.getElementById('link-input').value = novoLinkGerado;
@@ -247,7 +256,7 @@
         function copiarLink() {
             const input = document.getElementById('link-input');
             input.select();
-            input.setSelectionRange(0, 99999); // Para mobile
+            input.setSelectionRange(0, 99999); 
             navigator.clipboard.writeText(input.value);
             
             const btnCopy = document.querySelector('.btn-copy');
@@ -258,12 +267,11 @@
         }
 
         function entrarNaSalaCriada() {
-            // Recarrega a página colocando o hash na URL. Isso fará o script cair direto no chat.
             window.location.href = novoLinkGerado;
             window.location.reload();
         }
 
-        // --- LÓGICA DO CHAT (SÓ EXECUTA QUANDO ESTÁ NA SALA) ---
+        // --- LÓGICA DO CHAT ---
         function iniciarSistemaDeChat(salaId) {
             document.getElementById('landing-screen').style.display = 'none';
             document.getElementById('chat-screen').style.display = 'flex';
@@ -286,8 +294,8 @@
                         clearInterval(intervalo);
                         display.innerText = "SALA EXPIRADA";
                         alert("O tempo desta sala acabou. Ela foi destruída.");
-                        window.location.hash = ""; // Limpa a URL
-                        window.location.reload();  // Volta pra página inicial
+                        window.location.hash = ""; 
+                        window.location.reload();  
                     }
                     segundosRestantes--;
                 }, 1000);
@@ -302,12 +310,10 @@
                 renderizarMensagem(conteudo, 'received', dados.formato);
             });
 
-            // Configura o envio de texto e enter
             document.getElementById('text-input').addEventListener('keypress', function (e) { 
                 if (e.key === 'Enter') enviarTexto(); 
             });
 
-            // Configura botão de microfone
             const btnMic = document.getElementById('btn-mic');
             btnMic.addEventListener('touchstart', iniciarGravacao);
             btnMic.addEventListener('touchend', pararGravacao);
