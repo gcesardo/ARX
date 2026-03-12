@@ -58,11 +58,14 @@
         header img { max-height: 50px; width: auto; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0,243,255,0.3));}
         #sala-timer { font-size: 0.75rem; color: #ff3e3e; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; font-weight: bold; text-shadow: 0 0 5px rgba(255, 62, 62, 0.5); }
         
+        /* CADEADO E2EE */
+        #e2ee-status { font-size: 0.7rem; margin-top: 8px; margin-bottom: 5px; padding: 4px 10px; border-radius: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; background: rgba(40, 167, 69, 0.1); color: #00ff41; border: 1px solid #00ff41; box-shadow: 0 0 10px rgba(0, 255, 65, 0.4); opacity: 0; transition: opacity 0.5s ease; letter-spacing: 1px; }
+
         #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-image: url('planodefundo.png'); background-size: cover; background-position: center; background-attachment: fixed; }
         .message-wrapper { display: flex; width: 100%; flex-shrink: 0; }
         .message-wrapper.sent { justify-content: flex-end; }
         .message-wrapper.received { justify-content: flex-start; }
-        .message { max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative; background: rgba(17, 17, 17, 0.9); border: 1px solid #222; font-size: 0.95rem; backdrop-filter: blur(4px); }
+        .message { max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative; background: rgba(17, 17, 17, 0.9); border: 1px solid #222; font-size: 0.95rem; backdrop-filter: blur(4px); word-break: break-word; }
         .message-wrapper.sent .message { border-bottom-right-radius: 4px; border-color: rgba(0, 243, 255, 0.4); box-shadow: inset 0 0 10px rgba(0,243,255,0.05);}
         .message-wrapper.received .message { border-bottom-left-radius: 4px; border-color: #444; }
         .timer-bar { height: 2px; background: var(--neon-blue); width: 100%; margin-top: 5px; border-radius: 2px; transition: width 300s linear; box-shadow: 0 0 5px var(--neon-blue);}
@@ -96,7 +99,7 @@
 
     <div id="app-container">
         <div id="landing-screen">
-            <img src="logo.png" alt="ARX Logo">
+            <img src="logo.png" alt="ARX Logo" onerror="this.style.display='none'">
             <button class="btn-neon" id="btn-criar" onclick="gerarNovaSala()">Criar Sala Segura</button>
             <div id="link-box">
                 <p>Envie este link para o contato:</p>
@@ -106,13 +109,14 @@
                     <button class="btn-enter" onclick="entrarNaSalaCriada()">Entrar</button>
                 </div>
             </div>
-            <div class="version-tag">ARX v4.0</div>
+            <div class="version-tag">ARX v4.0 (E2EE)</div>
         </div>
 
         <div id="chat-screen">
             <header>
-                <img src="logo.png" alt="ARX">
+                <img src="logo.png" alt="ARX" onerror="this.style.display='none'">
                 <div id="sala-timer">SINCRONIZANDO CRONÔMETRO...</div>
+                <div id="e2ee-status">🔒 E2EE ATIVO</div>
             </header>
             <div id="chat-window"></div>
             <div id="input-area">
@@ -124,11 +128,9 @@
     </div>
 
     <script>
-        // --- DETECTOR RADICAL DE QUALQUER NAVEGADOR EMBUTIDO ---
+        // --- DETECTOR RADICAL DE NAVEGADOR EMBUTIDO ---
         const ua = navigator.userAgent || navigator.vendor || window.opera;
-        // Procura agressivamente por rastros do WhatsApp, Instagram, Facebook ou qualquer "WebView" de Android
         const isInAppUA = /WhatsApp|Instagram|FBAN|FBAV|wv|Line|MicroMessenger/i.test(ua);
-        // Procura por WebViews no iPhone (que usam AppleWebKit mas não são o Safari oficial)
         const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit/i.test(ua) && !/Safari/i.test(ua);
         
         if (isInAppUA || isIOSWebView) {
@@ -145,19 +147,84 @@
         let hashAtual = window.location.hash.substring(1);
         let novoLinkGerado = "";
         let socket; 
+        let salaIdReal = "";
+        let chaveCriptograficaObj = null;
 
-        // Só carrega o sistema se passou no bloqueio
+        // --- MOTOR CRIPTOGRÁFICO (E2EE) ---
+        async function setupKey(hexKey) {
+            const rawKey = new Uint8Array(hexKey.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            chaveCriptograficaObj = await crypto.subtle.importKey(
+                "raw", rawKey, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]
+            );
+        }
+
+        async function criptografarDados(dados) {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            let dadosCodificados;
+            
+            if (typeof dados === 'string') {
+                dadosCodificados = new TextEncoder().encode(dados);
+            } else {
+                dadosCodificados = new Uint8Array(await dados.arrayBuffer());
+            }
+                
+            const cipherBuffer = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv }, chaveCriptograficaObj, dadosCodificados
+            );
+            return { iv: iv.buffer, cipher: cipherBuffer };
+        }
+
+        async function descriptografarDados(payloadCriptografado, isText = true) {
+            try {
+                const decryptedBuffer = await crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: payloadCriptografado.iv }, 
+                    chaveCriptograficaObj, 
+                    payloadCriptografado.cipher
+                );
+                if (isText) return new TextDecoder().decode(decryptedBuffer);
+                return decryptedBuffer; 
+            } catch (e) {
+                console.error("Falha na descriptografia.", e);
+                return null;
+            }
+        }
+
+        // --- INICIALIZAÇÃO ---
         if (!isInAppUA && !isIOSWebView) {
-            if (hashAtual) {
-                iniciarSistemaDeChat(hashAtual);
+            if (hashAtual && hashAtual.includes('-')) {
+                const partes = hashAtual.split('-');
+                salaIdReal = partes[0];
+                const chaveSecreta = partes[1];
+                
+                setupKey(chaveSecreta).then(() => {
+                    iniciarSistemaDeChat(salaIdReal);
+                    setTimeout(() => {
+                        document.getElementById('e2ee-status').style.opacity = '1';
+                    }, 500); 
+                }).catch(err => {
+                    alert("🔒 ERRO DE SEGURANÇA: Chave de criptografia inválida ou corrompida.");
+                    window.location.hash = "";
+                    window.location.reload();
+                });
+            } else if (hashAtual) {
+                alert("Link de sala inválido ou antigo. Crie uma nova sala.");
+                window.location.hash = "";
+                window.location.reload();
             } else {
                 document.getElementById('landing-screen').style.display = 'flex';
             }
         }
 
-        function gerarNovaSala() {
-            const codigoSala = Math.random().toString(36).substring(2, 10);
+        async function gerarNovaSala() {
+            const id = Math.random().toString(36).substring(2, 10);
+            
+            // Gera chave AES 256 bits
+            const rawKey = crypto.getRandomValues(new Uint8Array(32));
+            const hexKey = [...rawKey].map(x => x.toString(16).padStart(2, '0')).join('');
+            
+            const codigoSala = `${id}-${hexKey}`;
             novoLinkGerado = window.location.origin + window.location.pathname + '#' + codigoSala;
+            
             document.getElementById('link-input').value = novoLinkGerado;
             document.getElementById('btn-criar').style.display = 'none';
             document.getElementById('link-box').style.display = 'flex';
@@ -166,7 +233,7 @@
         function copiarLink() {
             const input = document.getElementById('link-input');
             input.select();
-            input.setSelectionRange(0, 99999); 
+            input.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(input.value);
             const btnCopy = document.querySelector('.btn-copy');
             btnCopy.innerText = 'Copiado!';
@@ -184,7 +251,7 @@
             document.getElementById('landing-screen').style.display = 'none';
             document.getElementById('chat-screen').style.display = 'flex';
 
-            socket = io('https://arx-e8xb.onrender.com');
+            socket = io('https://arx-e8xb.onrender.com'); // Substitua pela sua URL se necessário
             socket.on('connect', () => { socket.emit('entrar-na-sala', salaId); });
 
             socket.on('info-sala', (dados) => {
@@ -194,7 +261,7 @@
                 const intervalo = setInterval(() => {
                     let min = Math.floor(segundosRestantes / 60);
                     let seg = segundosRestantes % 60;
-                    display.innerText = `ESTA SALA IRÁ EXPIRAR EM: ${min}:${seg < 10 ? '0' + seg : seg}`;
+                    display.innerText = `EXPIRA EM: ${min}:${seg < 10 ? '0' + seg : seg}`;
                     if (segundosRestantes <= 0) {
                         clearInterval(intervalo);
                         display.innerText = "SALA EXPIRADA";
@@ -206,42 +273,56 @@
                 }, 1000);
             });
 
-            socket.on('receber-mensagem', (dados) => {
-                let conteudo = dados.conteudo;
-                if (dados.formato === 'audio') {
-                    const blob = new Blob([dados.conteudo], { type: 'audio/webm' });
-                    conteudo = URL.createObjectURL(blob);
+            socket.on('receber-mensagem', async (dados) => {
+                let conteudo;
+                if (dados.formato === 'text') {
+                    conteudo = await descriptografarDados(dados.conteudo, true);
+                    if (!conteudo) conteudo = "⚠️ Mensagem Ilegível (Erro de Descriptografia)";
+                } else if (dados.formato === 'audio') {
+                    const audioBuffer = await descriptografarDados(dados.conteudo, false);
+                    if (audioBuffer) {
+                        const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+                        conteudo = URL.createObjectURL(blob);
+                    } else {
+                        return; // Ignora se falhar
+                    }
                 }
                 renderizarMensagem(conteudo, 'received', dados.formato);
             });
 
             document.getElementById('text-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') enviarTexto(); });
             const btnMic = document.getElementById('btn-mic');
-            btnMic.addEventListener('touchstart', iniciarGravacao);
-            btnMic.addEventListener('touchend', pararGravacao);
+            btnMic.addEventListener('touchstart', iniciarGravacao, {passive: false});
+            btnMic.addEventListener('touchend', pararGravacao, {passive: false});
             btnMic.addEventListener('mousedown', iniciarGravacao);
             btnMic.addEventListener('mouseup', pararGravacao);
         }
 
-        function enviarTexto() {
+        async function enviarTexto() {
             const input = document.getElementById('text-input');
             const texto = input.value.trim();
             if (!texto) return;
+            
             renderizarMensagem(texto, 'sent', 'text');
-            socket.emit('enviar-mensagem', { salaId: hashAtual, conteudo: texto, formato: 'text' });
             input.value = '';
+
+            const payloadCriptografado = await criptografarDados(texto);
+            socket.emit('enviar-mensagem', { salaId: salaIdReal, conteudo: payloadCriptografado, formato: 'text' });
         }
 
         function renderizarMensagem(conteudo, tipo, formato) {
-            const wrapper = document.createElement('div');
-            wrapper.className = `message-wrapper ${tipo}`;
-            const bubble = document.createElement('div');
-            bubble.className = 'message';
+            const wrapper = document.createElement('div'); wrapper.className = `message-wrapper ${tipo}`;
+            const bubble = document.createElement('div'); bubble.className = 'message';
+            
             if (formato === 'text') bubble.innerText = conteudo;
             else { const audio = document.createElement('audio'); audio.src = conteudo; audio.controls = true; bubble.appendChild(audio); }
+            
             const bar = document.createElement('div'); bar.className = 'timer-bar'; bubble.appendChild(bar); wrapper.appendChild(bubble);
-            document.getElementById('chat-window').appendChild(wrapper); document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-            setTimeout(() => bar.style.width = '0%', 50); setTimeout(() => wrapper.remove(), 300000); 
+            document.getElementById('chat-window').appendChild(wrapper); 
+            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+            
+            setTimeout(() => bar.style.width = '0%', 50); 
+            setTimeout(() => wrapper.remove(), 300000); 
         }
 
         let mediaRecorder, audioChunks = [];
@@ -251,16 +332,26 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream); audioChunks = [];
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/webm' }); const url = URL.createObjectURL(blob);
-                    renderizarMensagem(url, 'sent', 'audio'); socket.emit('enviar-mensagem', { salaId: hashAtual, conteudo: blob, formato: 'audio' });
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' }); 
+                    const url = URL.createObjectURL(blob);
+                    
+                    renderizarMensagem(url, 'sent', 'audio'); 
+                    
+                    const payloadCriptografado = await criptografarDados(blob);
+                    socket.emit('enviar-mensagem', { salaId: salaIdReal, conteudo: payloadCriptografado, formato: 'audio' });
                 };
                 mediaRecorder.start(); document.getElementById('btn-mic').classList.add('recording');
             } catch (err) { alert("Permissão de microfone negada."); }
         }
+        
         function pararGravacao(e) {
             e.preventDefault();
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); document.getElementById('btn-mic').classList.remove('recording'); mediaRecorder.stream.getTracks().forEach(t => t.stop()); }
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') { 
+                mediaRecorder.stop(); 
+                document.getElementById('btn-mic').classList.remove('recording'); 
+                mediaRecorder.stream.getTracks().forEach(t => t.stop()); 
+            }
         }
     </script>
 </body>
